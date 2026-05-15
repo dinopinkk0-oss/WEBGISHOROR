@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WebGIS Lokasi Angker — Yogyakarta</title>
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100%;overflow:hidden;background:#000}
+
+    /* ── FONT ── */
+    :root{
+      --f-head:'Creepster',cursive;
+      --f-body:'Crimson Text',Georgia,serif;
+      --f-mono:'Share Tech Mono',monospace;
+      --red:#cc0000;--red-b:#ff1a1a;--red-glow:rgba(204,0,0,0.5);
+      --gold:#c9a227;--white:#e8d5c4;--dim:#6a4a4a;
+    }
+
+    /* ══ LANDING PAGE ══════════════════════════════ */
+    #landing{
+      position:fixed;inset:0;z-index:100;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      background:#000;
+      overflow:hidden;
+    }
+
+    /* Fog layers */
+    .fog-wrap{position:absolute;inset:0;pointer-events:none;z-index:0}
+    .fog{
+      position:absolute;border-radius:50%;filter:blur(80px);
+      animation:fogAnim 20s ease-in-out infinite alternate;
+    }
+    .fog-1{width:70vw;height:50vh;background:rgba(80,0,0,0.35);top:-10%;left:-10%;animation-delay:0s}
+    .fog-2{width:60vw;height:60vh;background:rgba(40,0,60,0.3);bottom:-15%;right:-10%;animation-delay:-7s}
+    .fog-3{width:50vw;height:40vh;background:rgba(100,0,0,0.2);top:30%;left:20%;animation-delay:-14s}
+    @keyframes fogAnim{
+      from{transform:translate(0,0) scale(1)}
+      to{transform:translate(3%,3%) scale(1.08)}
+    }
+
+    /* Blood drips top */
+    #drips{position:absolute;top:0;left:0;right:0;height:200px;pointer-events:none;z-index:1}
+    .drip{
+      position:absolute;top:0;width:3px;border-radius:0 0 3px 3px;
+      background:linear-gradient(to bottom,#990000,#cc0000,#550000);
+      animation:dripDown var(--dur,6s) var(--del,0s) ease-in infinite;
+      transform-origin:top center;
+    }
+    @keyframes dripDown{
+      0%{height:0;opacity:0}
+      10%{opacity:1}
+      60%{height:var(--dh,80px);opacity:0.85}
+      90%{height:var(--dh,80px);opacity:0}
+      100%{height:0;opacity:0}
+    }
+
+    /* Floating ghosts */
+    .ghost{
+      position:absolute;font-size:clamp(1.8rem,4vw,3.2rem);
+      pointer-events:none;z-index:2;
+      animation:ghostFloat var(--gd,8s) var(--gdelay,0s) ease-in-out infinite alternate;
+      filter:drop-shadow(0 0 12px rgba(200,200,255,0.5));
+      opacity:0.6;
+    }
+    @keyframes ghostFloat{
+      from{transform:translate(0,0) rotate(-5deg) scale(1)}
+      to{transform:translate(var(--gx,20px),var(--gy,-30px)) rotate(5deg) scale(1.08)}
+    }
+
+    /* Skull particles */
+    .skull-p{
+      position:absolute;font-size:clamp(0.8rem,1.5vw,1.4rem);
+      pointer-events:none;z-index:2;opacity:0;
+      animation:skullRise var(--sd,10s) var(--sdelay,0s) linear infinite;
+    }
+    @keyframes skullRise{
+      0%{opacity:0;transform:translateY(0) rotate(0deg)}
+      10%{opacity:0.4}
+      80%{opacity:0.3}
+      100%{opacity:0;transform:translateY(-100vh) rotate(360deg)}
+    }
+
+    /* Lightning flash */
+    .lightning{
+      position:absolute;inset:0;z-index:3;pointer-events:none;
+      background:rgba(200,200,255,0.08);
+      animation:lightning 12s ease-in-out infinite;
+      opacity:0;
+    }
+    @keyframes lightning{
+      0%,94%,96%,98%,100%{opacity:0}
+      95%,97%{opacity:1}
+    }
+
+    /* ── CONTENT ── */
+    .landing-content{
+      position:relative;z-index:10;
+      display:flex;flex-direction:column;align-items:center;
+      gap:1.2rem;text-align:center;
+      padding:0 1.5rem;
+      animation:fadeInUp 1.2s ease both;
+    }
+    @keyframes fadeInUp{
+      from{opacity:0;transform:translateY(30px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+
+    .landing-skull{
+      font-size:clamp(3rem,8vw,5.5rem);
+      animation:skullBeat 1.8s ease-in-out infinite;
+      filter:drop-shadow(0 0 20px var(--red-glow));
+    }
+    @keyframes skullBeat{
+      0%,100%{transform:scale(1) rotate(-3deg)}
+      50%{transform:scale(1.1) rotate(3deg);filter:drop-shadow(0 0 30px rgba(255,0,0,0.7))}
+    }
+
+    .landing-title{
+      font-family:var(--f-head);
+      font-size:clamp(1.4rem,4.5vw,3rem);
+      color:var(--red-b);
+      letter-spacing:0.08em;line-height:1.2;
+      text-shadow:0 0 20px var(--red-glow),0 0 50px rgba(180,0,0,0.4);
+      animation:textFlicker 4s ease-in-out infinite;
+    }
+    @keyframes textFlicker{
+      0%,92%,96%,100%{opacity:1}
+      93%,95%{opacity:0.7}
+      94%{opacity:0.3}
+    }
+
+    .landing-sub{
+      font-family:var(--f-body);font-style:italic;
+      font-size:clamp(0.8rem,1.8vw,1.1rem);
+      color:var(--gold);letter-spacing:0.05em;
+    }
+
+    /* Divider */
+    .divider{
+      width:clamp(160px,40vw,300px);height:1px;
+      background:linear-gradient(90deg,transparent,var(--red),transparent);
+      position:relative;
+    }
+    .divider::before{
+      content:'✦';position:absolute;top:50%;left:50%;
+      transform:translate(-50%,-50%);
+      color:var(--red);font-size:0.8rem;background:#000;padding:0 6px;
+    }
+
+    /* Team */
+    .team-box{
+      background:rgba(255,255,255,0.03);
+      border:1px solid rgba(180,0,0,0.25);
+      border-radius:4px;padding:0.8rem 1.5rem;
+    }
+    .team-label{
+      font-family:var(--f-mono);font-size:0.62rem;
+      letter-spacing:0.15em;color:var(--dim);text-transform:uppercase;
+      margin-bottom:0.4rem;
+    }
+    .team-names{
+      font-family:var(--f-body);font-size:clamp(0.78rem,1.4vw,0.95rem);
+      color:var(--white);line-height:1.8;
+    }
+    .team-names span{color:var(--gold)}
+
+    /* MASUK button */
+    .btn-masuk{
+      margin-top:0.5rem;
+      padding:clamp(0.7rem,2vw,1rem) clamp(2rem,5vw,3.5rem);
+      background:linear-gradient(135deg,#6b0000,#cc0000,#6b0000);
+      background-size:200% 100%;
+      border:1px solid rgba(255,80,80,0.4);
+      border-radius:3px;
+      font-family:var(--f-head);
+      font-size:clamp(1.1rem,2.5vw,1.6rem);
+      letter-spacing:0.18em;color:#fff;
+      cursor:pointer;position:relative;overflow:hidden;
+      box-shadow:0 0 30px rgba(180,0,0,0.4),0 0 60px rgba(100,0,0,0.2);
+      transition:all 0.3s;
+      animation:btnPulse 3s ease-in-out infinite;
+    }
+    @keyframes btnPulse{
+      0%,100%{box-shadow:0 0 30px rgba(180,0,0,0.4),0 0 60px rgba(100,0,0,0.2)}
+      50%{box-shadow:0 0 50px rgba(220,0,0,0.7),0 0 100px rgba(150,0,0,0.4)}
+    }
+    .btn-masuk::before{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(135deg,transparent,rgba(255,255,255,0.1),transparent);
+      opacity:0;transition:opacity 0.2s;
+    }
+    .btn-masuk:hover{
+      transform:scale(1.05);
+      box-shadow:0 0 60px rgba(255,0,0,0.6),0 0 120px rgba(180,0,0,0.4);
+    }
+    .btn-masuk:hover::before{opacity:1}
+    .btn-masuk:active{transform:scale(0.97)}
+
+    /* Scare flash on click */
+    #scareFlash{
+      position:fixed;inset:0;z-index:9999;
+      background:rgba(255,0,0,0.15);
+      pointer-events:none;opacity:0;
+      animation:none;
+    }
+    #scareFlash.active{
+      animation:scareAnim 0.6s ease forwards;
+    }
+    @keyframes scareAnim{
+      0%{opacity:0}15%{opacity:1}50%{opacity:0.5}100%{opacity:0}
+    }
+
+    /* Transition overlay */
+    #transOverlay{
+      position:fixed;inset:0;z-index:9998;
+      background:#000;opacity:0;pointer-events:none;
+      transition:opacity 0.8s ease;
+    }
+    #transOverlay.fade-in{opacity:1;pointer-events:all}
+
+    /* Audio indicator */
+    .audio-indicator{
+      position:fixed;bottom:1rem;right:1rem;z-index:50;
+      font-family:var(--f-mono);font-size:0.65rem;
+      color:var(--dim);letter-spacing:0.1em;
+      display:flex;align-items:center;gap:0.4rem;
+    }
+    .audio-dot{
+      width:6px;height:6px;border-radius:50%;background:var(--red);
+      animation:audioBlink 1s ease-in-out infinite;
+    }
+    .audio-indicator.muted .audio-dot{animation:none;background:var(--dim)}
+    @keyframes audioBlink{0%,100%{opacity:1}50%{opacity:0.2}}
+
+    /* ══ APP (MAP) ══════════════════════════════════ */
+    #appScreen{
+      position:fixed;inset:0;z-index:10;
+      display:none;
+    }
+
+    /* Navbar */
+    .navbar{
+      position:fixed;top:0;left:0;right:0;z-index:200;
+      height:54px;display:flex;align-items:center;
+      padding:0 1rem;gap:0.8rem;
+      background:rgba(6,0,0,0.93);
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid rgba(180,0,0,0.25);
+      box-shadow:0 2px 24px rgba(180,0,0,0.15);
+    }
+    .nav-brand{display:flex;align-items:center;gap:0.5rem;flex-shrink:0}
+    .nav-skull-sm{font-size:1.2rem;animation:skullBeat 3s ease-in-out infinite;filter:drop-shadow(0 0 6px var(--red-glow))}
+    .nav-title{font-family:var(--f-head);font-size:1.1rem;color:var(--red-b);letter-spacing:0.08em;text-shadow:0 0 10px var(--red-glow);line-height:1}
+    .nav-sub{font-family:var(--f-mono);font-size:0.55rem;color:var(--dim);align-self:flex-end;padding-bottom:2px}
+    .nav-center{flex:1;display:flex;justify-content:center}
+    .search-wrap{position:relative;width:100%;max-width:320px}
+    .search-wrap .si{position:absolute;left:0.7rem;top:50%;transform:translateY(-50%);font-size:0.8rem;pointer-events:none}
+    .search-wrap input{
+      width:100%;padding:0.42rem 0.8rem 0.42rem 2.1rem;
+      background:rgba(255,255,255,0.05);border:1px solid rgba(180,0,0,0.25);
+      border-radius:2px;color:var(--white);font-family:var(--f-body);font-size:0.85rem;outline:none;
+      transition:border-color 0.2s;
+    }
+    .search-wrap input:focus{border-color:var(--red)}
+    .search-wrap input::placeholder{color:var(--dim)}
+    .search-results{
+      position:absolute;top:calc(100% + 3px);left:0;right:0;
+      background:#0d0005;border:1px solid rgba(180,0,0,0.25);
+      border-radius:2px;z-index:500;max-height:200px;overflow-y:auto;display:none;
+    }
+    .search-results.show{display:block}
+    .search-item{
+      padding:0.55rem 0.8rem;cursor:pointer;
+      font-family:var(--f-body);font-size:0.85rem;color:var(--white);
+      border-bottom:1px solid rgba(180,0,0,0.1);
+      transition:background 0.15s;display:flex;flex-direction:column;gap:0.15rem;
+    }
+    .search-item small{font-size:0.68rem;color:var(--dim);font-family:var(--f-mono)}
+    .search-item:hover{background:rgba(180,0,0,0.15)}
+
+    .nav-right{display:flex;align-items:center;gap:0.45rem;flex-shrink:0}
+    .nav-btn{
+      padding:0.35rem 0.7rem;
+      background:rgba(180,0,0,0.12);border:1px solid rgba(180,0,0,0.25);
+      border-radius:2px;color:var(--white);font-family:var(--f-mono);
+      font-size:0.7rem;letter-spacing:0.05em;cursor:pointer;
+      transition:all 0.2s;white-space:nowrap;
+    }
+    .nav-btn:hover{background:rgba(180,0,0,0.3);border-color:var(--red)}
+    .audio-btn{font-size:1rem;padding:0.35rem 0.6rem}
+
+    /* Sidebar */
+    --sb:260px;
+    .sidebar{
+      position:fixed;top:54px;left:0;bottom:0;
+      width:260px;z-index:150;
+      background:rgba(8,0,4,0.96);
+      border-right:1px solid rgba(180,0,0,0.2);
+      display:flex;flex-direction:column;
+      transition:transform 0.3s ease;
+    }
+    .sidebar.collapsed{transform:translateX(calc(-260px + 26px))}
+    .sidebar-toggle{
+      position:absolute;right:0;top:50%;transform:translateY(-50%);
+      width:26px;height:54px;
+      background:rgba(30,0,10,0.95);border:1px solid rgba(180,0,0,0.25);
+      border-left:none;border-radius:0 3px 3px 0;
+      display:flex;align-items:center;justify-content:center;
+      cursor:pointer;color:var(--dim);font-size:0.7rem;z-index:1;
+    }
+    .sidebar-toggle:hover{color:var(--red-b);background:rgba(180,0,0,0.15)}
+    .sidebar-content{flex:1;overflow-y:auto;padding:0.9rem;padding-right:32px}
+
+    .sidebar-title{font-family:var(--f-head);font-size:1rem;color:var(--red-b);letter-spacing:0.1em;margin-bottom:0.9rem;text-shadow:0 0 8px var(--red-glow)}
+    .filter-section{margin-bottom:1rem}
+    .filter-label{font-family:var(--f-mono);font-size:0.6rem;letter-spacing:0.12em;color:var(--dim);display:block;margin-bottom:0.4rem;text-transform:uppercase}
+    .filter-checks{display:flex;flex-direction:column;gap:0.25rem}
+    .check-item{display:flex;align-items:center;gap:0.45rem;font-family:var(--f-body);font-size:0.82rem;color:var(--white);cursor:pointer;padding:0.25rem 0.35rem;border-radius:2px;transition:background 0.15s}
+    .check-item:hover{background:rgba(255,255,255,0.04)}
+    .check-item input{accent-color:var(--red);width:12px;height:12px}
+    .check-green input{accent-color:#2dcc2d}.check-yellow input{accent-color:#ffd700}
+    .check-red input{accent-color:#ff3333}.check-purple input{accent-color:#cc44ff}
+
+    .stats-box{display:grid;grid-template-columns:1fr 1fr;gap:0.4rem}
+    .stat-item{background:rgba(255,255,255,0.03);border:1px solid rgba(180,0,0,0.15);border-radius:2px;padding:0.45rem;text-align:center}
+    .stat-item span{display:block;font-family:var(--f-mono);font-size:1.2rem;color:var(--red-b)}
+    .stat-item small{font-family:var(--f-mono);font-size:0.55rem;color:var(--dim)}
+
+    .location-list{display:flex;flex-direction:column;gap:0.35rem;max-height:240px;overflow-y:auto}
+    .loc-item{padding:0.5rem 0.6rem;background:rgba(255,255,255,0.03);border:1px solid rgba(180,0,0,0.12);border-radius:2px;cursor:pointer;transition:all 0.15s}
+    .loc-item:hover{border-color:var(--red);background:rgba(180,0,0,0.1)}
+    .loc-item-name{font-family:var(--f-body);font-size:0.82rem;color:var(--white)}
+    .loc-item-sub{font-family:var(--f-mono);font-size:0.6rem;margin-top:0.1rem}
+
+    /* Map */
+    #map{position:fixed;top:54px;left:260px;right:0;bottom:0;transition:left 0.3s}
+    .sidebar.collapsed~#map{left:26px}
+
+    /* Location bar */
+    .location-bar{
+      position:fixed;bottom:0.7rem;right:0.7rem;z-index:160;
+      background:rgba(8,0,4,0.88);border:1px solid rgba(180,0,0,0.2);
+      border-radius:2px;padding:0.35rem 0.7rem;
+      font-family:var(--f-mono);font-size:0.65rem;color:var(--dim);
+    }
+
+    /* Leaflet overrides */
+    .leaflet-popup-content-wrapper{
+      background:rgba(10,0,6,0.97)!important;
+      border:1px solid rgba(180,0,0,0.4)!important;
+      border-radius:4px!important;
+      box-shadow:0 8px 40px rgba(180,0,0,0.3)!important;
+      font-family:var(--f-body)!important;
+    }
+    .leaflet-popup-tip{background:rgba(10,0,6,0.97)!important}
+    .leaflet-popup-close-button{color:var(--dim)!important;font-size:1rem!important}
+    .leaflet-popup-close-button:hover{color:var(--red-b)!important}
+    .leaflet-control-zoom a{background:rgba(10,0,6,0.9)!important;border-color:rgba(180,0,0,0.3)!important;color:var(--white)!important}
+    .leaflet-control-zoom a:hover{background:rgba(180,0,0,0.2)!important}
+    .leaflet-control-attribution{background:rgba(6,0,0,0.75)!important;color:var(--dim)!important;font-size:0.55rem!important}
+    .leaflet-control-attribution a{color:var(--red)!important}
+
+    .popup-inner{min-width:200px;padding:0.2rem 0}
+    .popup-title{font-family:var(--f-head);font-size:1.15rem;color:var(--red-b);margin-bottom:0.4rem;text-shadow:0 0 8px var(--red-glow)}
+    .popup-row{font-family:var(--f-mono);font-size:0.68rem;color:var(--dim);margin-bottom:0.2rem}
+    .popup-row strong{color:var(--white)}
+    .popup-dist{font-family:var(--f-mono);font-size:0.65rem;color:var(--dim);margin:0.35rem 0}
+    .popup-btn{
+      margin-top:0.5rem;width:100%;padding:0.45rem;
+      background:linear-gradient(135deg,rgba(100,0,0,0.6),rgba(180,0,0,0.4));
+      border:1px solid rgba(180,0,0,0.4);border-radius:2px;
+      color:var(--white);font-family:var(--f-head);font-size:0.88rem;
+      letter-spacing:0.08em;cursor:pointer;transition:all 0.2s;
+    }
+    .popup-btn:hover{background:linear-gradient(135deg,#8b0000,#cc0000)}
+
+    /* ── MODAL DETAIL ── */
+    .modal-overlay{
+      position:fixed;inset:0;z-index:400;
+      background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);
+      display:none;align-items:center;justify-content:center;padding:1rem;
+    }
+    .modal-overlay.active{display:flex;animation:mBg 0.25s ease}
+    @keyframes mBg{from{opacity:0}to{opacity:1}}
+    .modal-box{
+      position:relative;width:100%;max-width:660px;max-height:88vh;
+      background:#0a0005;border:1px solid rgba(180,0,0,0.4);border-radius:4px;
+      overflow:hidden;display:flex;flex-direction:column;
+      animation:mIn 0.3s cubic-bezier(.34,1.56,.64,1) both;
+      box-shadow:0 0 60px rgba(180,0,0,0.25),0 20px 60px rgba(0,0,0,0.6);
+    }
+    @keyframes mIn{from{opacity:0;transform:scale(0.92) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    .modal-close{
+      position:absolute;top:8px;right:10px;z-index:10;
+      background:rgba(0,0,0,0.5);border:1px solid rgba(180,0,0,0.3);
+      border-radius:50%;width:28px;height:28px;
+      color:var(--dim);font-size:0.8rem;cursor:pointer;display:grid;place-items:center;
+      transition:all 0.2s;
+    }
+    .modal-close:hover{background:rgba(180,0,0,0.3);color:#fff;border-color:var(--red)}
+    .modal-img-wrap{position:relative;height:180px;overflow:hidden;flex-shrink:0}
+    .modal-img-wrap img{width:100%;height:100%;object-fit:cover;filter:brightness(0.65) saturate(0.5)}
+    .modal-img-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 25%,#0a0005 100%)}
+    .modal-title-wrap{position:absolute;bottom:0;left:0;right:0;padding:0.9rem 1.1rem}
+    .modal-badge{font-family:var(--f-mono);font-size:0.62rem;color:var(--dim);margin-bottom:0.2rem}
+    .modal-title-wrap h2{font-family:var(--f-head);font-size:1.65rem;color:var(--red-b);text-shadow:0 0 14px var(--red-glow);letter-spacing:0.06em;line-height:1.1}
+    .modal-meta{display:flex;gap:0.45rem;align-items:center;margin-top:0.25rem}
+    .level-badge{font-family:var(--f-mono);font-size:0.6rem;letter-spacing:0.1em;padding:0.18rem 0.45rem;border-radius:2px;background:rgba(180,0,0,0.2);border:1px solid rgba(180,0,0,0.4)}
+    .pct-badge{font-family:var(--f-mono);font-size:0.72rem;color:var(--white)}
+
+    .modal-body{flex:1;overflow-y:auto;padding:0 1.1rem}
+    .modal-tabs{display:flex;border-bottom:1px solid rgba(180,0,0,0.2);margin-bottom:0.8rem;position:sticky;top:0;background:#0a0005;z-index:1}
+    .mtab{
+      padding:0.6rem 0.9rem;background:none;border:none;
+      font-family:var(--f-mono);font-size:0.68rem;letter-spacing:0.08em;
+      color:var(--dim);border-bottom:2px solid transparent;
+      cursor:pointer;transition:all 0.2s;margin-bottom:-1px;
+    }
+    .mtab.active{color:var(--red-b);border-bottom-color:var(--red-b)}
+    .mtab:hover{color:var(--white)}
+    .mtab-content{display:none;padding-bottom:1rem}
+    .mtab-content.active{display:block}
+    .detail-desc{font-family:var(--f-body);font-size:0.95rem;color:var(--white);line-height:1.8}
+
+    .kronologi-list{display:flex;flex-direction:column;gap:0}
+    .krono-item{display:flex;gap:0.8rem;padding-bottom:0.9rem;position:relative}
+    .krono-item::before{content:'';position:absolute;left:16px;top:28px;bottom:0;width:1px;background:rgba(180,0,0,0.2)}
+    .krono-item:last-child::before{display:none}
+    .krono-time{
+      width:32px;height:32px;border-radius:50%;flex-shrink:0;
+      background:rgba(30,0,10,0.95);border:1px solid var(--red);
+      display:grid;place-items:center;
+      font-family:var(--f-mono);font-size:0.55rem;color:var(--red-b);text-align:center;line-height:1.2;padding:2px;
+    }
+    .krono-desc{font-family:var(--f-body);font-size:0.88rem;color:var(--white);padding-top:0.35rem;line-height:1.65}
+
+    .video-wrap{border-radius:3px;overflow:hidden;background:#000}
+    .video-wrap iframe{width:100%;aspect-ratio:16/9;border:none;display:block}
+    .video-note{font-family:var(--f-mono);font-size:0.65rem;color:var(--dim);text-align:center;margin-top:0.4rem}
+
+    .modal-rating{
+      padding:0.8rem 1.1rem;border-top:1px solid rgba(180,0,0,0.2);
+      display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;flex-shrink:0;
+    }
+    .rating-label{font-family:var(--f-mono);font-size:0.65rem;color:var(--dim)}
+    .stars{display:flex;gap:0.15rem}
+    .star{font-size:1.3rem;color:rgba(255,255,255,0.1);cursor:pointer;transition:color 0.15s,transform 0.15s;line-height:1}
+    .star:hover,.star.active{color:#f5c518;transform:scale(1.15)}
+    .rating-avg{font-family:var(--f-mono);font-size:0.68rem;color:var(--dim);margin-left:auto}
+
+    /* Add modal */
+    .modal-add{max-width:540px;max-height:88vh;overflow-y:auto;padding:1.4rem}
+    .modal-add-title{font-family:var(--f-head);font-size:1.4rem;color:var(--red-b);letter-spacing:0.1em;margin-bottom:1rem;text-shadow:0 0 10px var(--red-glow)}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.7rem;margin-bottom:0.9rem}
+    .form-full{grid-column:1/-1}
+    .form-group{display:flex;flex-direction:column;gap:0.25rem}
+    .form-group label{font-family:var(--f-mono);font-size:0.62rem;letter-spacing:0.1em;color:var(--dim)}
+    .form-group input,.form-group select,.form-group textarea{
+      background:rgba(255,255,255,0.04);border:1px solid rgba(180,0,0,0.25);
+      border-radius:2px;padding:0.55rem 0.75rem;color:var(--white);
+      font-family:var(--f-body);font-size:0.88rem;outline:none;transition:border-color 0.2s;
+    }
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--red)}
+    .form-group input::placeholder,.form-group textarea::placeholder{color:rgba(106,74,74,0.6)}
+    .form-group select option{background:#0a0005}
+    .form-group textarea{resize:vertical;min-height:70px}
+    .btn-horror{
+      width:100%;padding:0.8rem;
+      background:linear-gradient(135deg,#6b0000,#cc0000);
+      border:1px solid rgba(255,60,60,0.3);border-radius:2px;
+      color:#fff;font-family:var(--f-head);font-size:1.05rem;letter-spacing:0.1em;
+      cursor:pointer;transition:all 0.25s;box-shadow:0 4px 18px rgba(180,0,0,0.3);
+    }
+    .btn-horror:hover{transform:translateY(-1px);box-shadow:0 6px 26px rgba(200,0,0,0.5)}
+
+    .hidden{display:none!important}
+
+    /* Scrollbar */
+    ::-webkit-scrollbar{width:4px}
+    ::-webkit-scrollbar-track{background:rgba(255,255,255,0.02)}
+    ::-webkit-scrollbar-thumb{background:rgba(180,0,0,0.4);border-radius:2px}
+
+    @media(max-width:640px){
+      .sidebar{transform:translateX(-100%)}
+      .sidebar.open{transform:translateX(0)}
+      #map{left:0!important}
+      .nav-sub,.nav-right .nav-btn:not(.audio-btn){display:none}
+      .form-grid{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ SCARE FLASH ══ -->
+<div id="scareFlash"></div>
+<div id="transOverlay"></div>
+
+<!-- ══ LANDING PAGE ══════════════════════════════ -->
+<div id="landing">
+  <div class="fog-wrap">
+    <div class="fog fog-1"></div>
+    <div class="fog fog-2"></div>
+    <div class="fog fog-3"></div>
+  </div>
+
+  <!-- Blood drips -->
+  <div id="drips"></div>
+
+  <!-- Lightning -->
+  <div class="lightning"></div>
+
+  <!-- Floating ghosts (generated by JS) -->
+  <div id="ghostContainer"></div>
+
+  <!-- Skull particles -->
+  <div id="skullContainer"></div>
+
+  <div class="landing-content">
+    <div class="landing-skull">💀</div>
+
+    <h1 class="landing-title">
+      WebGIS Interaktif<br/>
+      Lokasi Angker &amp; Cerita Mitos Lokal<br/>
+      <span style="font-size:0.65em;color:var(--gold);letter-spacing:0.12em">Berbasis SDI</span>
+    </h1>
+
+    <p class="landing-sub">Yogyakarta — Pemetaan Berbasis Persepsi Masyarakat</p>
+
+    <div class="divider"></div>
+
+    <div class="team-box">
+      <div class="team-label">Disusun oleh</div>
+      <div class="team-names">
+        <span>Ilma</span> &nbsp;·&nbsp; <span>Erfina</span> &nbsp;·&nbsp; <span>Dirra</span> &nbsp;·&nbsp; <span>Imel</span><br/>
+        <span>Tota</span> &nbsp;·&nbsp; <span>Delima</span> &nbsp;·&nbsp; <span>Octo</span>
+      </div>
+    </div>
+
+    <button class="btn-masuk" id="btnMasuk" onclick="enterMap()">
+      ☠ &nbsp;MASUK&nbsp; ☠
+    </button>
+
+    <p style="font-family:var(--f-mono);font-size:0.6rem;color:var(--dim);letter-spacing:0.08em">
+      ⚠ Data bersifat persepsi masyarakat — bukan klaim kebenaran mutlak
+    </p>
+  </div>
+
+  <!-- Audio indicator -->
+  <div class="audio-indicator" id="audioIndicator">
+    <div class="audio-dot"></div>
+    <span id="audioLabel">MEMUAT AUDIO...</span>
+  </div>
+</div>
+
+<!-- ══ APP SCREEN (MAP) ══════════════════════════ -->
+<div id="appScreen">
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="nav-skull-sm">💀</span>
+      <span class="nav-title">HAUNTED MAP</span>
+      <span class="nav-sub">Yogyakarta</span>
+    </div>
+    <div class="nav-center">
+      <div class="search-wrap">
+        <span class="si">🔍</span>
+        <input type="text" id="searchInput" placeholder="Cari lokasi angker..." oninput="searchLocations()"/>
+        <div class="search-results" id="searchResults"></div>
+      </div>
+    </div>
+    <div class="nav-right">
+      <button class="nav-btn audio-btn" id="audioBtn" onclick="toggleAudio()" title="Toggle musik">🔊</button>
+      <button class="nav-btn" onclick="openAddModal()">＋ Lokasi</button>
+    </div>
+  </nav>
+
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-toggle" onclick="toggleSidebar()">
+      <span id="sidebarToggleIcon">◀</span>
+    </div>
+    <div class="sidebar-content">
+      <h3 class="sidebar-title">🕸 FILTER</h3>
+      <div class="filter-section">
+        <label class="filter-label">Tingkat Kepercayaan</label>
+        <div class="filter-checks">
+          <label class="check-item check-green"><input type="checkbox" value="rendah" checked onchange="applyFilters()"/> Rendah</label>
+          <label class="check-item check-yellow"><input type="checkbox" value="sedang" checked onchange="applyFilters()"/> Sedang</label>
+          <label class="check-item check-red"><input type="checkbox" value="tinggi" checked onchange="applyFilters()"/> Tinggi</label>
+          <label class="check-item check-purple"><input type="checkbox" value="sangat-tinggi" checked onchange="applyFilters()"/> Sangat Tinggi</label>
+        </div>
+      </div>
+      <div class="filter-section">
+        <label class="filter-label">Kategori Cerita</label>
+        <div class="filter-checks">
+          <label class="check-item"><input type="checkbox" value="penampakan" checked onchange="applyFilters()"/> 👻 Penampakan</label>
+          <label class="check-item"><input type="checkbox" value="suara" checked onchange="applyFilters()"/> 🔊 Suara Misterius</label>
+          <label class="check-item"><input type="checkbox" value="bau" checked onchange="applyFilters()"/> 💨 Bau Aneh</label>
+          <label class="check-item"><input type="checkbox" value="kejadian" checked onchange="applyFilters()"/> ⚡ Kejadian Aneh</label>
+          <label class="check-item"><input type="checkbox" value="urban-legend" checked onchange="applyFilters()"/> 📖 Urban Legend</label>
+        </div>
+      </div>
+      <div class="filter-section">
+        <label class="filter-label">Statistik</label>
+        <div class="stats-box">
+          <div class="stat-item"><span id="statTotal">0</span><small>Total Lokasi</small></div>
+          <div class="stat-item"><span id="statVisible">0</span><small>Ditampilkan</small></div>
+        </div>
+      </div>
+      <div class="filter-section">
+        <label class="filter-label">Daftar Lokasi</label>
+        <div class="location-list" id="locationList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="map"></div>
+
+  <div class="location-bar">
+    <span id="locationStatus">📍 Mendeteksi lokasi kamu...</span>
+  </div>
+</div>
+
+<!-- ══ MODAL DETAIL ══ -->
+<div class="modal-overlay" id="detailModal" onclick="closeDetailModal(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeDetailModalBtn()">✕</button>
+    <div class="modal-header" style="position:relative">
+      <div class="modal-img-wrap">
+        <img id="detailImg" src="" alt="" onerror="this.src='https://via.placeholder.com/600x200/0a0005/cc0000?text=HAUNTED'"/>
+        <div class="modal-img-overlay"></div>
+      </div>
+      <div class="modal-title-wrap">
+        <div class="modal-badge" id="detailBadge"></div>
+        <h2 id="detailName"></h2>
+        <div class="modal-meta">
+          <span id="detailLevel" class="level-badge"></span>
+          <span id="detailPct" class="pct-badge"></span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <button class="mtab active" onclick="switchModalTab('cerita',this)">📜 Cerita</button>
+        <button class="mtab" onclick="switchModalTab('kronologi',this)">🕐 Kronologi</button>
+        <button class="mtab" onclick="switchModalTab('video',this)">🎬 Podcast</button>
+      </div>
+      <div id="tabCerita" class="mtab-content active"><p id="detailDesc" class="detail-desc"></p></div>
+      <div id="tabKronologi" class="mtab-content"><div id="detailKronologi" class="kronologi-list"></div></div>
+      <div id="tabVideo" class="mtab-content">
+        <div class="video-wrap">
+          <iframe id="detailVideo" src="" allowfullscreen title="Podcast horor"></iframe>
+          <p class="video-note" id="videoNote"></p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-rating">
+      <p class="rating-label">Beri penilaian:</p>
+      <div class="stars">
+        <span class="star" onclick="setRating(1)">★</span>
+        <span class="star" onclick="setRating(2)">★</span>
+        <span class="star" onclick="setRating(3)">★</span>
+        <span class="star" onclick="setRating(4)">★</span>
+        <span class="star" onclick="setRating(5)">★</span>
+      </div>
+      <p class="rating-avg" id="ratingAvg">Rata-rata: —</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL TAMBAH LOKASI ══ -->
+<div class="modal-overlay" id="addModal" onclick="closeAddModal(event)">
+  <div class="modal-box modal-add">
+    <button class="modal-close" onclick="document.getElementById('addModal').classList.remove('active')">✕</button>
+    <h2 class="modal-add-title">👻 Tambah Lokasi Angker</h2>
+    <form onsubmit="submitNewLocation(event)">
+      <div class="form-grid">
+        <div class="form-group"><label>Nama Lokasi</label><input type="text" id="addName" placeholder="Nama tempat..." required/></div>
+        <div class="form-group"><label>Kategori</label>
+          <select id="addKategori">
+            <option value="penampakan">👻 Penampakan</option>
+            <option value="suara">🔊 Suara Misterius</option>
+            <option value="bau">💨 Bau Aneh</option>
+            <option value="kejadian">⚡ Kejadian Aneh</option>
+            <option value="urban-legend">📖 Urban Legend</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Latitude</label><input type="number" id="addLat" placeholder="-7.8xxx" step="any" required/></div>
+        <div class="form-group"><label>Longitude</label><input type="number" id="addLon" placeholder="110.3xxx" step="any" required/></div>
+        <div class="form-group form-full"><label>Deskripsi</label><textarea id="addDesc" placeholder="Ceritakan..."></textarea></div>
+        <div class="form-group"><label>Tingkat Kepercayaan</label>
+          <select id="addLevel">
+            <option value="rendah">🟢 Rendah</option>
+            <option value="sedang">🟡 Sedang</option>
+            <option value="tinggi">🔴 Tinggi</option>
+            <option value="sangat-tinggi">💀 Sangat Tinggi</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Link Gambar (opsional)</label><input type="url" id="addImg" placeholder="https://..."/></div>
+      </div>
+      <button type="submit" class="btn-horror">LAPORKAN LOKASI INI</button>
+    </form>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
